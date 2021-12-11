@@ -1,9 +1,7 @@
 cmake_minimum_required(VERSION 3.21.0)
 
-# uncomment this if you're using `vcpkg` for MSVC
-# 
-# set(CMAKE_TOOLCHAIN_FILE D:/vcpkg/scripts/buildsystems/vcpkg.cmake 
-#   CACHE STRING "Vcpkg toolchain file")
+# if you're using `vcpkg` to resolve dependencies
+# please set `toolchainFile` to path-to-vcpkg\\scripts\\buildsystems\\vcpkg.cmake for presets in your cmake-tools-kits.json
 
 project(meshL VERSION 0.1.0)
 
@@ -11,11 +9,9 @@ find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 find_package(OpenCV CONFIG REQUIRED)
 
-set(CMAKE_CXX_STANDARD 17 REQUIRED)
-
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
+if ((NOT DEFINED CMAKE_CXX_STANDARD) OR (CMAKE_CXX_STANDARD LESS 17))
+  set(CMAKE_CXX_STANDARD 17 REQUIRED)
+endif()
 
 add_library(mesh STATIC mesh.cpp material.cpp)
 target_include_directories(
@@ -30,13 +26,10 @@ target_link_libraries(
 )
 target_precompile_headers(mesh PUBLIC ${PROJECT_SOURCE_DIR}/pch/pch.h)
 
-file(GLOB ASSET "assets/*")
-
 add_executable(test_obj test_obj.cpp)
 target_link_libraries(test_obj mesh)
 add_custom_command(TARGET test_obj POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:test_obj> $<TARGET_FILE_DIR:test_obj>
-  COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:test_obj>/../assets # in case there's no assets served
-  COMMAND ${CMAKE_COMMAND} -E copy ${ASSET} $<TARGET_FILE_DIR:test_obj>/../assets
+  COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/assets $<TARGET_FILE_DIR:test_obj>/../assets
   COMMAND_EXPAND_LISTS
 )
