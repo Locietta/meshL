@@ -17,13 +17,17 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 
-add_library(mesh mesh.cpp material.cpp)
+add_library(mesh STATIC mesh.cpp material.cpp)
 target_include_directories(
     mesh 
     INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
-    PRIVATE   ${CMAKE_CURRENT_SOURCE_DIR}/include
+    PRIVATE   ${CMAKE_CURRENT_SOURCE_DIR}/include ${OpenCV_INCLUDE_DIRS}
 )
-target_link_libraries(mesh PRIVATE OpenGL::GL OpenGL::GLU GLUT::GLUT ${OpenCV_LIBRARIES})
+target_link_libraries(
+  mesh 
+  INTERFACE ${OpenCV_LIBRARIES}
+  PRIVATE OpenGL::GL OpenGL::GLU GLUT::GLUT
+)
 target_precompile_headers(mesh PUBLIC ${PROJECT_SOURCE_DIR}/pch/pch.h)
 
 file(GLOB ASSET "assets/*")
