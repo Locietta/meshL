@@ -22,10 +22,13 @@ public:
 
     static void applyMaterial(const Material &mtl);
     static void clearMaterial();
-    
+
     void loadTexture(GLuint &tex, std::filesystem::path const &texFile);
     ~Material();
 };
+
+using MaterialPool = std::unordered_map<std::string, Material>;
+MaterialPool loadMaterialPool(std::filesystem::path const &mtlPath);
 
 class Mesh {
 public:
@@ -44,9 +47,10 @@ private:
     using ParamMatcher =
         std::unordered_map<std::string_view, auto (*)(Mesh &m, std::istringstream &)->void>;
     const static ParamMatcher obj_param_matcher, mtl_param_matcher;
-    std::unordered_map<std::string, Material> mtlPool_;
+    MaterialPool mtlPool_;
     static void fileParser_(std::filesystem::path const &path, Mesh &mesh,
                             ParamMatcher const &matcher);
+    friend MaterialPool loadMaterialPool(std::filesystem::path const &mtlPath);
 
 public:
     std::vector<glm::vec3> vertices; // (x, y, z)

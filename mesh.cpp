@@ -248,4 +248,11 @@ void Material::loadTexture( GLuint &tex, fs::path const &texFile) {
 Material::~Material() {
     glDeleteTextures(4, &(this->mapKa)); // delete all textures
 }
+
+MaterialPool loadMaterialPool(std::filesystem::path const &mtlPath) {
+    Mesh m;
+    Mesh::fileParser_(mtlPath, m, Mesh::mtl_param_matcher);
+    return move(m.mtlPool_);
+}
+
 } // namespace loia
