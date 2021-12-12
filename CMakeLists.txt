@@ -5,25 +5,24 @@ cmake_minimum_required(VERSION 3.21.0)
 project(meshL VERSION 0.1.0)
 
 find_package(OpenGL REQUIRED)
-find_package(GLUT REQUIRED)
-find_package(OpenCV CONFIG REQUIRED)
 
-add_library(mesh STATIC mesh.cpp material.cpp)
+add_library(mesh STATIC mesh.cpp)
 target_include_directories(
   mesh
   INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
-  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include ${OpenCV_INCLUDE_DIRS}
+  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 target_link_libraries(
   mesh
-  INTERFACE ${OpenCV_LIBRARIES}
-  PRIVATE OpenGL::GL OpenGL::GLU GLUT::GLUT
+  PRIVATE OpenGL::GL OpenGL::GLU
 )
 target_precompile_headers(mesh PUBLIC ${PROJECT_SOURCE_DIR}/pch/pch.h)
 target_compile_features(mesh PUBLIC cxx_std_17)
 
+find_package(OpenCV CONFIG REQUIRED)
 add_executable(test_obj test_obj.cpp)
-target_link_libraries(test_obj mesh)
+target_include_directories(test_obj PRIVATE ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(test_obj PRIVATE mesh ${OpenCV_LIBRARIES})
 add_custom_command(TARGET test_obj POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:test_obj> $<TARGET_FILE_DIR:test_obj>
   COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/examples $<TARGET_FILE_DIR:test_obj>/../examples

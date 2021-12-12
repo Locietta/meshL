@@ -12,10 +12,10 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
-
 // c++ std
 #include <algorithm>
 #include <array>
+#include <exception>
 #include <filesystem>
 #include <fstream>
 #include <initializer_list>

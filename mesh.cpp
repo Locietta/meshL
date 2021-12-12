@@ -35,6 +35,9 @@ string curr_mtl_name;
 fs::path curr_obj_path, curr_mtllib_path;
 } // namespace
 
+Material::MtlCallback Material::apply_cb_default = nullptr;
+Material::TexCallback Material::tex_binder_default = nullptr;
+
 void Mesh::fileParser_(fs::path const &path, Mesh &mesh, ParamMatcher const &matcher) {
     ifstream fin(path);
     if (!fin) return;
@@ -206,7 +209,40 @@ const Mesh::ParamMatcher Mesh::mtl_param_matcher {
         if (texture_path.is_relative()) {
             texture_path = curr_mtllib_path.parent_path() / texture_path;
         }
-        Material::loadTexture(m.mtlPool_[curr_mtl_name].mapKd, texture_path);
+        auto &curr_mtl = m.mtlPool_[curr_mtl_name];
+        curr_mtl.loadTexture(curr_mtl.mapKd, texture_path);
     }},
 };
 // clang-format on
+
+void Material::applyMaterial(const Material &mtl) {
+    if (mtl.applyCallback == nullptr) {
+        if (Material::apply_cb_default == nullptr) {
+            throw std::logic_error("need to register apply callback for class Material!");
+        }
+        apply_cb_default(mtl);
+    } else {
+        mtl.applyCallback(mtl);
+    }
+}
+
+void Material::clearMaterial() {
+    Material default_mtl;
+    applyMaterial(default_mtl);
+}
+
+// NOLINTNEXTLINE(readability-make-member-function-const)
+void Material::loadTexture( GLuint &tex, fs::path const &texFile) { 
+    if (this->texBinder == nullptr) {
+        if (Material::tex_binder_default == nullptr) {
+            throw std::logic_error("need to register texture binder callback for class Material!");
+        }
+        Material::tex_binder_default(tex, texFile);
+    } else {
+        this->texBinder(tex, texFile);
+    }
+}
+
+Material::~Material() {
+    glDeleteTextures(4, &(this->mapKa)); // delete all textures
+}

@@ -1,7 +1,30 @@
 #ifndef _MESH_H_
 #define _MESH_H_
 
-#include "material.h"
+class Material {
+private:
+    using MtlCallback = void (*)(const Material &);
+    using TexCallback = void (*)(GLuint &tex, std::filesystem::path const &texFile);
+
+public:
+    GLuint mapKa, mapKd, mapKs, mapNs;
+    glm::vec3 ambient = {0.2, 0.2, 0.2}, diffuse = {0.8, 0.8, 0.8}, specular = {0, 0, 0},
+              emssion = {0, 0, 0.1};
+    float Ns = 50.0, Ni = 1.0; // NOLINT: `Ns` for reflection factor, `Ni` for optical density
+    int illumination;
+
+    // user should register callbacks
+    static MtlCallback apply_cb_default;   // apply the material
+    static TexCallback tex_binder_default; // read a pic and bind to texture-id
+    MtlCallback applyCallback = nullptr;
+    TexCallback texBinder = nullptr;
+
+    static void applyMaterial(const Material &mtl);
+    static void clearMaterial();
+    
+    void loadTexture(GLuint &tex, std::filesystem::path const &texFile);
+    ~Material();
+};
 
 class Mesh {
 public:
