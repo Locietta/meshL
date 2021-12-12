@@ -19,6 +19,7 @@ I've tested building this on:
 
 ### Dependencies
 
-* OpenCV
-* freeglut (and opengl of course)
+* OpenGL
+
+> * to build `test_obj` for test, you'll need OpenCV
 
