@@ -20,12 +20,12 @@ public:
     MtlCallback applyCallback = nullptr;
     TexCallback texBinder = nullptr;
 
+    static void applyMaterial(const Material &mtl);
+    static void clearMaterial();
+    
     void loadTexture(GLuint &tex, std::filesystem::path const &texFile);
     ~Material();
 };
-
-void applyMaterial(const Material &mtl);
-void clearMaterial();
 
 class Mesh {
 public:

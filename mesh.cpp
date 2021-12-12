@@ -28,7 +28,7 @@ inline T svto(string_view sv) { // NOLINT(readability-identifier-naming)
 namespace fs = std::filesystem;
 
 namespace loia {
-    
+
 namespace { //< static local global states
 Mesh::SurfaceGroup curr_surface_group;
 
@@ -82,7 +82,7 @@ Mesh Mesh::loadMesh(std::filesystem::path const &model) {
 void Mesh::renderMesh(const Mesh &mesh, float zoom) {
     for (const auto &f_group : mesh.surfaceGroups) {
         if (f_group.pMtl != nullptr) {
-            applyMaterial(*f_group.pMtl);
+            Material::applyMaterial(*f_group.pMtl);
         }
         glShadeModel((f_group.smooth) ? GL_SMOOTH : GL_FLAT);
 
@@ -217,8 +217,24 @@ const Mesh::ParamMatcher Mesh::mtl_param_matcher {
 };
 // clang-format on
 
+void Material::applyMaterial(const Material &mtl) {
+    if (mtl.applyCallback == nullptr) {
+        if (Material::apply_cb_default == nullptr) {
+            throw std::logic_error("need to register apply callback for class Material!");
+        }
+        apply_cb_default(mtl);
+    } else {
+        mtl.applyCallback(mtl);
+    }
+}
+
+void Material::clearMaterial() {
+    Material default_mtl;
+    applyMaterial(default_mtl);
+}
+
 // NOLINTNEXTLINE(readability-make-member-function-const)
-void Material::loadTexture(GLuint &tex, fs::path const &texFile) {
+void Material::loadTexture( GLuint &tex, fs::path const &texFile) { 
     if (this->texBinder == nullptr) {
         if (Material::tex_binder_default == nullptr) {
             throw std::logic_error("need to register texture binder callback for class Material!");
@@ -231,21 +247,5 @@ void Material::loadTexture(GLuint &tex, fs::path const &texFile) {
 
 Material::~Material() {
     glDeleteTextures(4, &(this->mapKa)); // delete all textures
-}
-
-void applyMaterial(const Material &mtl) {
-    if (mtl.applyCallback == nullptr) {
-        if (Material::apply_cb_default == nullptr) {
-            throw std::logic_error("need to register apply callback for class Material!");
-        }
-        Material::apply_cb_default(mtl);
-    } else {
-        mtl.applyCallback(mtl);
-    }
-}
-
-void clearMaterial() {
-    Material default_mtl;
-    applyMaterial(default_mtl);
 }
 } // namespace loia
