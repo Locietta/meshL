@@ -27,6 +27,8 @@ inline T svto(string_view sv) { // NOLINT(readability-identifier-naming)
 
 namespace fs = std::filesystem;
 
+namespace loia {
+    
 namespace { //< static local global states
 Mesh::SurfaceGroup curr_surface_group;
 
@@ -246,3 +248,4 @@ void clearMaterial() {
     Material default_mtl;
     applyMaterial(default_mtl);
 }
+} // namespace loia

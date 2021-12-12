@@ -1,5 +1,6 @@
 #ifndef _MESH_H_
 #define _MESH_H_
+namespace loia {
 
 class Material {
 private:
@@ -18,7 +19,7 @@ public:
     static TexCallback tex_binder_default; // read a pic and bind to texture-id
     MtlCallback applyCallback = nullptr;
     TexCallback texBinder = nullptr;
-    
+
     void loadTexture(GLuint &tex, std::filesystem::path const &texFile);
     ~Material();
 };
@@ -57,4 +58,5 @@ public:
     static void renderMesh(const Mesh &mesh, float zoom);
 };
 
+} // namespace loia
 #endif // _MESH_H_

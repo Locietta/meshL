@@ -24,7 +24,7 @@ void texBind(GLuint &tex, std::filesystem::path const &texFile) {
     img.release();
 }
 
-void applyMtl(const Material &mtl) {
+void applyMtl(const loia::Material &mtl) {
     glMaterialfv(GL_FRONT, GL_AMBIENT, value_ptr(mtl.ambient));
     glMaterialfv(GL_FRONT, GL_DIFFUSE, value_ptr(mtl.diffuse));
     glMaterialfv(GL_FRONT, GL_SPECULAR, value_ptr(mtl.specular));
@@ -35,11 +35,11 @@ void applyMtl(const Material &mtl) {
 }
 
 int main() {
-    Material::tex_binder_default = texBind;
+    loia::Material::tex_binder_default = texBind;
     auto start = chrono::steady_clock::now();
     // const auto mesh = Mesh::loadMesh("../simple_car.obj");
     // const auto mesh = Mesh::loadMesh("../awesome_car.obj"); // 350+MB, take ~1min to load it
-    const auto mesh = Mesh::loadMesh("../examples/simple_car.obj");
+    const auto mesh = loia::Mesh::loadMesh("../examples/simple_car.obj");
     auto end = chrono::steady_clock::now();
 
     size_t size = 0;
