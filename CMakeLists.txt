@@ -16,7 +16,7 @@ target_link_libraries(
   mesh
   PRIVATE OpenGL::GL OpenGL::GLU
 )
-target_precompile_headers(mesh PUBLIC ${PROJECT_SOURCE_DIR}/pch/pch.h)
+target_precompile_headers(mesh PUBLIC ${meshL_SOURCE_DIR}/pch/pch.h)
 target_compile_features(mesh PUBLIC cxx_std_17)
 
 find_package(OpenCV CONFIG REQUIRED)
