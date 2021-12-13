@@ -20,9 +20,9 @@ public:
     MtlCallback applyCallback = nullptr;
     TexCallback texBinder = nullptr;
 
-    static void applyMaterial(const Material &mtl);
     static void clearMaterial();
 
+    void apply() const;
     void loadTexture(GLuint &tex, std::filesystem::path const &texFile);
     ~Material();
 };

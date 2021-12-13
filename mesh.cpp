@@ -82,7 +82,7 @@ Mesh Mesh::loadMesh(std::filesystem::path const &model) {
 void Mesh::renderMesh(const Mesh &mesh, float zoom) {
     for (const auto &f_group : mesh.surfaceGroups) {
         if (f_group.pMtl != nullptr) {
-            Material::applyMaterial(*f_group.pMtl);
+            f_group.pMtl->apply();
         }
         glShadeModel((f_group.smooth) ? GL_SMOOTH : GL_FLAT);
 
@@ -217,20 +217,20 @@ const Mesh::ParamMatcher Mesh::mtl_param_matcher {
 };
 // clang-format on
 
-void Material::applyMaterial(const Material &mtl) {
-    if (mtl.applyCallback == nullptr) {
+void Material::apply() const {
+    if (this->applyCallback == nullptr) {
         if (Material::apply_cb_default == nullptr) {
             throw std::logic_error("need to register apply callback for class Material!");
         }
-        apply_cb_default(mtl);
+        apply_cb_default(*this);
     } else {
-        mtl.applyCallback(mtl);
+        this->applyCallback(*this);
     }
 }
 
 void Material::clearMaterial() {
     Material default_mtl;
-    applyMaterial(default_mtl);
+    default_mtl.apply();
 }
 
 // NOLINTNEXTLINE(readability-make-member-function-const)
