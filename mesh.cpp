@@ -20,20 +20,24 @@ inline T svto(string_view sv) { // NOLINT(readability-identifier-naming)
         delete[] temp_str;
         return res;
     } else { // unsuported conversion
-        static_assert(is_integral<T>::value || is_floating_point<T>::value,
-                      "Invalid conversion from std::string_view");
+        static_assert(is_integral<T>::value || is_floating_point<T>::value, "Invalid conversion from std::string_view");
     }
 }
 
 namespace fs = std::filesystem;
 
+namespace loia {
+
 namespace { //< static local global states
-Mesh::SurfaceGroup curr_surface_group;
+    Mesh::SurfaceGroup curr_surface_group;
 
-string curr_mtl_name;
+    string curr_mtl_name;
 
-fs::path curr_obj_path, curr_mtllib_path;
+    fs::path curr_obj_path, curr_mtllib_path;
 } // namespace
+
+Material::MtlCallback Material::apply_cb_default = nullptr;
+Material::TexCallback Material::tex_binder_default = nullptr;
 
 void Mesh::fileParser_(fs::path const &path, Mesh &mesh, ParamMatcher const &matcher) {
     ifstream fin(path);
@@ -71,13 +75,17 @@ Mesh Mesh::loadMesh(std::filesystem::path const &model) {
     curr_obj_path = model;
     Mesh mesh;
     Mesh::fileParser_(model, mesh, obj_param_matcher);
+    if (!curr_surface_group.empty()) {
+        mesh.surfaceGroups.push_back(move(curr_surface_group));
+        // curr_surface_group.clear();
+    }
     return mesh;
 }
 
 void Mesh::renderMesh(const Mesh &mesh, float zoom) {
     for (const auto &f_group : mesh.surfaceGroups) {
         if (f_group.pMtl != nullptr) {
-            Material::applyMaterial(*f_group.pMtl);
+            f_group.pMtl->apply();
         }
         glShadeModel((f_group.smooth) ? GL_SMOOTH : GL_FLAT);
 
@@ -95,6 +103,23 @@ void Mesh::renderMesh(const Mesh &mesh, float zoom) {
             glEnd();
         }
         glBindTexture(GL_TEXTURE_2D, 0); // switch to default texture
+    }
+}
+
+inline void readPoint(const string &buf, Mesh::Surface &s, int i) {
+    list<string_view> tokens;
+    split(buf, tokens, '/');
+    s.vertexId[i] = svto<int>(tokens.front()) - 1; // vertex-id is mandatory
+    if (tokens.size() == 2) {
+        s.textureId[i] = svto<int>(tokens.back()) - 1;
+    } else {
+        const auto &vt_str_view = *next(tokens.begin());
+        if (!vt_str_view.empty()) {
+            s.textureId[i] = svto<int>(vt_str_view) - 1;
+        } else {
+            s.textureId[i] = -1;
+        }
+        s.normalId[i] = svto<int>(tokens.back()) - 1;
     }
 }
 
@@ -117,19 +142,21 @@ const Mesh::ParamMatcher Mesh::obj_param_matcher{
     }},
     {"f", [](Mesh & /*m*/, istringstream &iss) {
         Surface s = {};
+        string buf;
         for (int i = 0; i < 3; ++i) {
-            string buf;
-            iss >> buf; // v/vt/vn v v/vt v//vn
-            list<string_view> tokens;
-            split(buf, tokens, '/');
-            s.vertexId[i] = svto<int>(tokens.front()) - 1; // vertex-id is mandatory
-            if (tokens.size() == 2) {
-                s.textureId[i] = svto<int>(tokens.back()) - 1;
-            } else {
-                const auto &vt_str_view = *next(tokens.begin());
-                if (!vt_str_view.empty()) s.textureId[i] = svto<int>(vt_str_view) - 1;
-                s.normalId[i] = svto<int>(tokens.back()) - 1;
-            }
+            iss >> buf;
+            readPoint(buf, s, i);
+        }
+        if (iss >> buf) {
+            Surface s1 = {};
+            readPoint(buf, s1, 0);
+            s1.vertexId[1] = s.vertexId[0];
+            s1.vertexId[2] = s.vertexId[2];
+            s1.normalId[1] = s.normalId[0];
+            s1.normalId[2] = s.normalId[2];
+            s1.textureId[1] = s.textureId[0];
+            s1.textureId[2] = s.textureId[2];
+            curr_surface_group.emplace_back(s1);
         }
         curr_surface_group.emplace_back(s);
     }},
@@ -206,7 +233,48 @@ const Mesh::ParamMatcher Mesh::mtl_param_matcher {
         if (texture_path.is_relative()) {
             texture_path = curr_mtllib_path.parent_path() / texture_path;
         }
-        Material::loadTexture(m.mtlPool_[curr_mtl_name].mapKd, texture_path);
+        auto &curr_mtl = m.mtlPool_[curr_mtl_name];
+        curr_mtl.loadTexture(curr_mtl.mapKd, texture_path);
     }},
 };
 // clang-format on
+
+void Material::apply() const {
+    if (this->applyCallback == nullptr) {
+        if (Material::apply_cb_default == nullptr) {
+            throw std::logic_error("need to register apply callback for class Material!");
+        }
+        apply_cb_default(*this);
+    } else {
+        this->applyCallback(*this);
+    }
+}
+
+void Material::clearMaterial() {
+    Material default_mtl;
+    default_mtl.apply();
+}
+
+// NOLINTNEXTLINE(readability-make-member-function-const)
+void Material::loadTexture(GLuint &tex, fs::path const &texFile) {
+    if (this->texBinder == nullptr) {
+        if (Material::tex_binder_default == nullptr) {
+            throw std::logic_error("need to register texture binder callback for class Material!");
+        }
+        Material::tex_binder_default(tex, texFile);
+    } else {
+        this->texBinder(tex, texFile);
+    }
+}
+
+Material::~Material() {
+    glDeleteTextures(4, &(this->mapKa)); // delete all textures
+}
+
+MaterialPool loadMaterialPool(std::filesystem::path const &mtlPath) {
+    Mesh m;
+    Mesh::fileParser_(mtlPath, m, Mesh::mtl_param_matcher);
+    return move(m.mtlPool_);
+}
+
+} // namespace loia
