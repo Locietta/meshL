@@ -6,16 +6,16 @@
 #endif
 
 // OpenGL
-#include <GL/glut.h>
+#include <GL/glu.h>
 #include <glm/ext.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
-
 // c++ std
 #include <algorithm>
 #include <array>
+#include <exception>
 #include <filesystem>
 #include <fstream>
 #include <initializer_list>
