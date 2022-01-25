@@ -147,6 +147,7 @@ const Mesh::ParamMatcher Mesh::obj_param_matcher{
             iss >> buf;
             readPoint(buf, s, i);
         }
+        curr_surface_group.emplace_back(s);
         if (iss >> buf) {
             Surface s1 = {};
             readPoint(buf, s1, 0);
@@ -158,7 +159,6 @@ const Mesh::ParamMatcher Mesh::obj_param_matcher{
             s1.textureId[2] = s.textureId[2];
             curr_surface_group.emplace_back(s1);
         }
-        curr_surface_group.emplace_back(s);
     }},
     {"mtllib", [](Mesh& m, istringstream& iss) {
         string temp;

@@ -24,11 +24,13 @@ struct Light {
 
 void init() {
     glClearColor(0.0, 0.0, 0.0, 0.0);
-    glShadeModel(GL_SMOOTH);
     glEnable(GL_COLOR);
     glEnable(GL_LIGHTING);
+    glEnable(GL_NORMALIZE);
     glEnable(GL_DEPTH_TEST);
+    glShadeModel(GL_SMOOTH);
     glEnable(GL_COLOR_MATERIAL);
+    // glDisable(GL_COLOR_MATERIAL);
 
     auto start = chrono::steady_clock::now();
     car = loia::Mesh::loadMesh("../assets/simple_car.obj");
@@ -45,18 +47,17 @@ void init() {
 void display(void) {
     // clear window
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    Light sun_light = {{0.0, 0, 0, 1.0},          // pos
-                       {0.9F, 0.9F, 0.9F, 1.0F},  // ambient
-                       {0.3F, 0.0F, 0.0F, 0.8F},  // diffuse
-                       {1.0F, 0.7F, 0.2F, 1.0F}}; // specular
+    Light sun_light = {{0.0, 1, 0, 0.0},          // pos
+                       {0.2F, 0.2F, 0.2F, 1.0F},  // ambient
+                       {0.1F, 0.1F, 0.1F, 0.8F},  // diffuse
+                       {0.0F, 0.0F, 0.0F, 1.0F}}; // specular
 
     Light::applyLight(GL_LIGHT0, sun_light);
 
     // draw
-    glRotatef(45, 0, 1, 0);
-    loia::Mesh::renderMesh(car, 0.1);
+    glRotatef(125, 0, 1, 0);
+    loia::Mesh::renderMesh(car, 0.3);
     glTranslatef(0, 0, -10);
-
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();

@@ -6,7 +6,7 @@
 
 static void texBind(GLuint &tex, std::filesystem::path const &texFile) {
     int width, height, nr_channels;
-    unsigned char *data = stbi_load(texFile.string().c_str(), &width, &height, &nr_channels, STBI_rgb);
+    unsigned char *data = stbi_load(texFile.string().c_str(), &width, &height, &nr_channels, STBI_rgb_alpha);
     glEnable(GL_TEXTURE_2D);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glGenTextures(1, &tex);
@@ -16,7 +16,7 @@ static void texBind(GLuint &tex, std::filesystem::path const &texFile) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    gluBuild2DMipmaps(GL_TEXTURE_2D, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
+    gluBuild2DMipmaps(GL_TEXTURE_2D, 3, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
     glBindTexture(GL_TEXTURE_2D, 0); // switch back to default texture
     stbi_image_free(data);
