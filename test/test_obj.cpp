@@ -1,6 +1,7 @@
 #include "mesh.h"
 #include "obj_loader.h"
 #include <chrono>
+#include <gl/freeglut.h>
 #include <glm/vec4.hpp>
 #include <iostream>
 
